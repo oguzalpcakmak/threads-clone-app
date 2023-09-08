@@ -1,0 +1,177 @@
+import { Thread } from "../types/threads";
+import { ReactNode } from "react";
+import { Text, View } from "./Themed";
+import { StyleSheet, useColorScheme } from "react-native";
+import {
+  AntDesign,
+  Feather,
+  FontAwesome,
+  Ionicons,
+  MaterialIcons,
+} from "@expo/vector-icons";
+import { timeAgo } from "../utils/time-ago";
+import { Image } from "expo-image";
+
+const blurhash =
+  "|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[";
+
+export default function ThreadsItem({
+  thread,
+  pressed,
+}: {
+  thread: Thread;
+  pressed: boolean;
+}): ReactNode {
+  return (
+    <View style={{ ...styles.outerContainer, opacity: pressed ? 0.5 : 1 }}>
+      <PostLeftSide {...thread} />
+      <View style={styles.threadRight}>
+        <PostHeading
+          name={thread.author.name}
+          createdAt={thread.createdAt}
+          verified={thread.author.verified}
+        />
+        <Text>{thread.content}</Text>
+        {thread.image && (
+          <Image
+            source={thread.image}
+            style={styles.imageContainer}
+            placeholder={blurhash}
+            contentFit="cover"
+            transition={200}
+          />
+        )}
+        <BottomIcons />
+        <PostFooter
+          repliesCount={thread.repliesCount}
+          likesCount={thread.likesCount}
+        />
+      </View>
+    </View>
+  );
+}
+
+function PostLeftSide(thread: Thread) {
+  const currentTheme = useColorScheme();
+  const borderColor = currentTheme === "light" ? "#00000020" : "#ffffff20";
+
+  return (
+    <View style={{ justifyContent: "space-between" }}>
+      <Image
+        source={thread.author.photo}
+        style={styles.image}
+        placeholder={blurhash}
+        contentFit="cover"
+        transition={500}
+      />
+      <View
+        style={{
+          borderWidth: 1,
+          alignSelf: "center",
+          borderColor: borderColor,
+          flexGrow: 1,
+        }}
+      />
+      <View
+        style={{
+          width: 20,
+          alignItems: "center",
+          alignSelf: "center",
+          gap: 3,
+        }}
+      >
+        {[1, 2, 3].map((index) => (
+          <Image
+            key={index}
+            source={
+              thread.replies ? thread.replies[index - 1]?.author.photo : null
+            }
+            style={{ width: index * 7, height: index * 7, borderRadius: 15 }}
+            placeholder={blurhash}
+            contentFit="cover"
+            transition={500}
+          />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function PostHeading({
+  name,
+  createdAt,
+  verified,
+}: {
+  name: string;
+  createdAt: string;
+  verified: boolean;
+}) {
+  return (
+    <View>
+      <View style={styles.miniContainer}>
+        <Text style={styles.postHeadingName}>{name}</Text>
+        {verified && (
+          <MaterialIcons name="verified" size={14} color="#60a5fa" />
+        )}
+      </View>
+      <View style={styles.miniContainer}>
+        <Text style={styles.postHeadingDate}>{timeAgo(createdAt)}</Text>
+        <Feather name="more-horizontal" size={14} color="gray" />
+      </View>
+    </View>
+  );
+}
+
+function PostFooter({
+  repliesCount,
+  likesCount,
+}: {
+  repliesCount: number;
+  likesCount: number;
+}) {
+  return (
+    <Text style={styles.postFooter}>
+      {`${repliesCount} replies · ${likesCount} likes`}
+    </Text>
+  );
+}
+
+function BottomIcons() {
+  const iconSize = 20;
+  const currentTheme = useColorScheme();
+  const iconColor = currentTheme === "dark" ? "white" : "black";
+  return (
+    <View style={styles.miniContainer}>
+      <FontAwesome name="heart-o" size={iconSize} color={iconColor} />
+      <Ionicons name="chatbubble-outline" size={iconSize} color={iconColor} />
+      <AntDesign name="retweet" size={iconSize} color={iconColor} />
+      <Feather name="send" size={iconSize} color={iconColor} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  outerContainer: { flexDirection: "row", gap: 6, paddingBottom: 30 },
+  threadRight: { gap: 6, flexShrink: 1 },
+  container: { flexDirection: "row", gap: 6, paddingBottom: 30 },
+  image: { width: 40, height: 40, borderRadius: 20 },
+  postHeadingOuterContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    flexGrow: 1,
+  },
+  miniContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  postHeadingName: {
+    fontWeight: "500",
+  },
+  postHeadingDate: {
+    color: "gray",
+  },
+  postFooter: { color: "gray" },
+  imageContainer: { width: "100%", minHeight: 300, borderRadius: 10 },
+});
